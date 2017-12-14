@@ -138,6 +138,7 @@ func TestKafkaProducer(t *testing.T) {
 		seed := sarama.NewMockBroker(t, int32(0))
 		seed.Returns(meta)
 
+		tc.config.Kafka.InsecurePlainText = true
 		tc.config.Kafka.Brokers = []string{seed.Addr()}
 
 		// Create new kafka producer
@@ -215,6 +216,7 @@ func TestNoForward(t *testing.T) {
 		meta.AddBroker(leader.Addr(), int32(1))
 		seed.Returns(meta)
 
+		tc.config.Kafka.InsecurePlainText = true
 		tc.config.Kafka.Brokers = []string{seed.Addr()}
 
 		// Create new kafka producer
@@ -295,6 +297,7 @@ func TestKafkaProducer_RoundRobin(t *testing.T) {
 	// Create new test kafka producer
 	stats := NewStats()
 	config := &Config{}
+	config.Kafka.InsecurePlainText = true
 	config.Kafka.Brokers = []string{seed.Addr()}
 	config.Kafka.Topic.LogMessage = topic
 	producer, err := NewKafkaProducer(nil, stats, config)
@@ -369,6 +372,8 @@ func TestKafkaProducer_repartition(t *testing.T) {
 	stats := NewStats()
 	producer, err := NewKafkaProducer(nil, stats, &Config{
 		Kafka: Kafka{
+			InsecurePlainText: true,
+
 			Brokers: []string{seed.Addr()},
 
 			RetryMax:     1,
@@ -451,6 +456,8 @@ func TestKafkaProducer_error(t *testing.T) {
 	stats := NewStats()
 	producer, err := NewKafkaProducer(nil, stats, &Config{
 		Kafka: Kafka{
+			InsecurePlainText: true,
+
 			Brokers: []string{seed.Addr()},
 			Topic: Topic{
 				LogMessage: topic,

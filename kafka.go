@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -26,6 +29,28 @@ func NewKafkaProducer(logger *log.Logger, stats *Stats, config *Config) (NozzleP
 	// Setup kafka async producer (We must use sync producer)
 	// TODO (tcnksm): Enable to configure more properties.
 	producerConfig := sarama.NewConfig()
+
+	if !config.Kafka.InsecurePlainText {
+		producerConfig.Net.TLS.Enable = true
+		if producerConfig.Net.TLS.Config == nil {
+			producerConfig.Net.TLS.Config = &tls.Config{}
+		}
+
+		producerConfig.Net.TLS.Config.RootCAs = x509.NewCertPool()
+		for _, certString := range config.Kafka.CACerts {
+			if !producerConfig.Net.TLS.Config.RootCAs.AppendCertsFromPEM([]byte(certString)) {
+				return nil, errors.New("no certs in ca pem")
+			}
+			producerConfig.Net.TLS.Config.BuildNameToCertificate()
+
+			cert, err := tls.X509KeyPair([]byte(config.Kafka.ClientCert), []byte(config.Kafka.ClientKey))
+			if err != nil {
+				return nil, err
+			}
+
+			producerConfig.Net.TLS.Config.Certificates = []tls.Certificate{cert}
+		}
+	}
 
 	producerConfig.Producer.Partitioner = sarama.NewRoundRobinPartitioner
 	producerConfig.Producer.Return.Successes = true

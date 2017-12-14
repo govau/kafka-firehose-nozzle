@@ -43,6 +43,25 @@ type Kafka struct {
 	RetryMax       int `toml:"retry_max"`
 	RetryBackoff   int `toml:"retry_backoff_ms"`
 	RepartitionMax int `toml:"repartition_max"`
+
+	// InsecurePlainText, if set, will connect to Kafka with plaintext.
+	InsecurePlainText bool `toml:"insecure_use_plaintext"`
+
+	// CACerts is a list of CAs certificates used to verify the host.
+	// Usually there is only one, however multiple can be specified to allow
+	// for rotation. These should be PEM encoded CERTIFICATEs.
+	// Ignored if insecure_use_plaintext is set.
+	CACerts []string `toml:"ca_certificates"`
+
+	// ClientKey is used with the client certificate to identify this client
+	// to Kafka. This should be a PEM encoded RSA PRIVATE KEY.
+	// Ignored if insecure_use_plaintext is set.
+	ClientKey string `toml:"private_key"`
+
+	// ClientCertificate is used with the client key to identify this client
+	// to Kafka. This should be a PEM encoded CERTIFICATE.
+	// Ignored if insecure_use_plaintext is set.
+	ClientCert string `toml:"certificate"`
 }
 
 type Topic struct {
